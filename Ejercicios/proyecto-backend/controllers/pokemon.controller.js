@@ -1,14 +1,13 @@
-const express = require('express')
-const app = express()
+
 const axios = require('axios')
-const port = 3005
 
-app.get('/pokemon', async(req,res) => {
+
+const getPokemon = async(req, res) => {
     try {
-
+        
         let pokemons = []
 
-        const POKE_API = await axios.get('https://pokeapi.co/api/v2/pokemon/')
+        const POKE_API = await axios.get('https://pokeapi.co/api/v2/pokemon?limit=50&offset=0')
         const data_poke_api = POKE_API.data.results
         const URLS = []
 
@@ -20,13 +19,20 @@ app.get('/pokemon', async(req,res) => {
         for(let i = 0; i < URLS.length; i++) {
 
             const ingresar = await axios.get(URLS[i])
+            let arrayImagenes = []
             
             const todosLosPokemon = await ingresar.data
+            
+            let imagenesUrl = todosLosPokemon.sprites.other.home.front_default
+            arrayImagenes.push(imagenesUrl)
+            
+            
             
                 pokemons.push({
                     id : todosLosPokemon.id,
                     name : todosLosPokemon.name,
                     tipo : todosLosPokemon.types.length === 2 ? [todosLosPokemon.types[0].type.name, todosLosPokemon.types[1].type.name] : [todosLosPokemon.types[0].type.name],
+                    img : imagenesUrl,
                     about : {
                         weight : todosLosPokemon.weight,
                         height : todosLosPokemon.height,
@@ -43,19 +49,21 @@ app.get('/pokemon', async(req,res) => {
                 })
         }
         
-        console.log(pokemons)
         
-        return res.status(200).json(pokemons);
+    
+        return res.status(200).json({
+            data : pokemons,
+            
+        })
 
     } catch (error) {
         console.error(error)
     }
     
-})
-app.listen(port, () => {
-    console.log("app lista ::", port)
-})
+}
 
 
+
+module.exports = getPokemon
 
 
